@@ -9,37 +9,38 @@ from kivy.app import App
 from kivy.core.window import Window
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, SlideTransition
-from services.database import DB
-from services.auth import Auth
-from services.question_service import QuestionService
-from services import updater
-from widgets.bottom_navigation import BottomNav, ITEMS
-from widgets.cards import BG, info, gradient_bg
-from screens.login import LoginScreen
-from screens.grade import GradeScreen
-from screens.home import HomeScreen
-from screens.subjects import SubjectsScreen
-from screens.test_hub import TestHub
-from screens.quiz import QuizScreen
-from screens.progress import ProgressScreen
-from screens.profile import ProfileScreen
-from screens.admin import AdminScreen
-from screens.calculator import CalculatorScreen
-from screens.periodic_table import PeriodicScreen
-from screens.formulas import FormulasScreen
-from screens.mistakes import MistakesScreen
+from service_database import DB
+from service_auth import Auth
+from service_question_service import QuestionService
+import service_updater as updater
+from widget_bottom_navigation import BottomNav, ITEMS
+from widget_cards import BG, info, gradient_bg
+from screen_login import LoginScreen
+from screen_grade import GradeScreen
+from screen_home import HomeScreen
+from screen_subjects import SubjectsScreen
+from screen_test_hub import TestHub
+from screen_quiz import QuizScreen
+from screen_progress import ProgressScreen
+from screen_profile import ProfileScreen
+from screen_admin import AdminScreen
+from screen_calculator import CalculatorScreen
+from screen_periodic_table import PeriodicScreen
+from screen_formulas import FormulasScreen
+from screen_mistakes import MistakesScreen
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 LANGS = ('kk', 'ru', 'en')
 
 def load(n):
-    with open(os.path.join(BASE, 'assets', n), encoding='utf-8') as f: return json.load(f)
+    with open(os.path.join(BASE, n), encoding='utf-8') as f: return json.load(f)
 
 def error_view(tb):
     sv = ScrollView(); l = Label(text=tb, size_hint_y=None, font_size=dp(11), halign='left', valign='top', color=(1, .6, .6, 1))
     l.bind(width=lambda i, w: setattr(i, 'text_size', (w, None)), texture_size=lambda i, t: setattr(i, 'height', t[1])); sv.add_widget(l); return sv
 
 class ShowErrors(ExceptionHandler):
+    """Runtime errors are shown on screen instead of silently closing the app."""
     def handle_exception(s, inst):
         tb = ''.join(traceback.format_exception(type(inst), inst, inst.__traceback__))
         Clock.schedule_once(lambda dt: Popup(title='Error (send a screenshot)', content=error_view(tb), size_hint=(.96, .9)).open()); return ExceptionManager.PASS
@@ -58,35 +59,30 @@ class BilimUp(App):
         s.tr, s.subjects, s.dirs = load('translations.json'), load('subjects.json'), load('directions.json')
         s.cfg = load('config.json'); s.user, s.lang = None, 'kk'
         root = BoxLayout(orientation='vertical'); gradient_bg(root); s.sm = ScreenManager(transition=SlideTransition(duration=.25))
-        for sid, cls in (('login', LoginScreen), ('grade', GradeScreen), ('home', HomeScreen), ('subjects', SubjectsScreen), ('test', TestHub), ('quiz', QuizScreen), ('progress', ProgressScreen), ('profile', ProfileScreen), ('admin', AdminScreen), ('calc', CalculatorScreen), ('periodic', PeriodicScreen), ('formulas', FormulasScreen), ('mistakes', MistakesScreen)):
+        for sid, cls in (('login', LoginScreen), ('grade', GradeScreen), ('home', HomeScreen), ('subjects', SubjectsScreen), ('test', TestHub),
+                         ('quiz', QuizScreen), ('progress', ProgressScreen), ('profile', ProfileScreen), ('admin', AdminScreen),
+                         ('calc', CalculatorScreen), ('periodic', PeriodicScreen), ('formulas', FormulasScreen), ('mistakes', MistakesScreen)):
             s.sm.add_widget(cls(name=sid))
         s.nav = BottomNav(s); root.add_widget(s.sm); root.add_widget(s.nav); s.nav.show(False)
         pw = s.auth.first_run_password()
         if pw: open(s.pwfile, 'w').write(pw)
         elif os.path.exists(s.pwfile): os.remove(s.pwfile)
-        saved = s.db.q("select v from meta where k='active_login'")
-        if saved:
-            rows = s.db.q('select * from users where login=?', (saved[0]['v'],))
-            if rows and not rows[0]['blocked']:
-                s.user = dict(rows[0]); s.lang = s.user['lang'] if s.user['lang'] in LANGS else 'kk'
-                s.nav.retext(); s.go('home' if s.user['grade'] else 'grade')
-            else:
-                s.db.q("delete from meta where k='active_login'"); s.sm.get_screen('login').refresh()
-        else: s.sm.get_screen('login').refresh()
+        s.sm.get_screen('login').refresh()
         Clock.schedule_once(lambda dt: s.check_updates(), 3)
         return root
+
     def t(s, k): return s.tr.get(k, [k] * 3)[LANGS.index(s.lang)]
     def sname(s, sid):
         for x in s.subjects:
             if x[0] == sid: return x[1 + LANGS.index(s.lang)]
         return sid
-    def go(s, name): s.sm.current = name; s.nav.show(name in ITEMS); s.nav.set_active(name)
+    def go(s, name):
+        s.sm.current = name; s.nav.show(name in ITEMS); s.nav.set_active(name)
     def login(s, user):
         if user['role'] == 'admin':
             s.auth.mark_admin_seen()
             if os.path.exists(s.pwfile): os.remove(s.pwfile)
-        s.user = user; s.lang = user['lang'] if user['lang'] in LANGS else s.lang
-        s.db.q("insert or replace into meta(k,v) values('active_login',?)", (user['login'],)); s.nav.retext(); s.go('home' if user['grade'] else 'grade')
+        s.user = user; s.lang = user['lang'] if user['lang'] in LANGS else s.lang; s.nav.retext(); s.go('home' if user['grade'] else 'grade')
     def check_updates(s, manual=False):
         url = s.cfg.get('update_url', '')
         if not url:
@@ -106,12 +102,15 @@ class BilimUp(App):
         if r['apk']: info(s.t('check_update'), f"{s.t('update_avail')} {r['version']}", s.t('download'), lambda: webbrowser.open(r['apk']))
         elif r['added']: info(s.t('check_update'), f"{s.t('new_q')}: {r['added']}", s.t('ok'))
         elif manual: info(s.t('check_update'), s.t('update_none'), s.t('ok'))
-    def logout(s): s.db.q("delete from meta where k='active_login'"); s.user = None; s.go('login')
+    def logout(s): s.user = None; s.go('login')
     def set_lang(s, l):
         s.lang = l; s.nav.retext()
         if s.user: s.auth.update(s.user['login'], lang=l); s.user['lang'] = l
         s.sm.get_screen(s.sm.current).refresh()
-    def quiz_with(s, qs, title, minutes): s.sm.get_screen('quiz').start(qs, title, minutes); s.sm.current = 'quiz'; s.sm.get_screen('quiz').refresh(); s.nav.show(False)
-    def start_quiz(s, sids, title, n, minutes=None): s.quiz_with(s.qs.mix(sids, n), title, minutes or max(1, n))
+    def quiz_with(s, qs, title, minutes):
+        s.sm.get_screen('quiz').start(qs, title, minutes); s.sm.current = 'quiz'; s.sm.get_screen('quiz').refresh(); s.nav.show(False)
+    def start_quiz(s, sids, title, n, minutes=None):
+        s.quiz_with(s.qs.mix(sids, n), title, minutes or max(1, n))
 
-if __name__ == '__main__': BilimUp().run()
+if __name__ == '__main__':
+    BilimUp().run()
