@@ -2,8 +2,8 @@ from kivy.metrics import dp
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.spinner import Spinner
 from widget_cards import Card, lbl, btn, row, info, NEON, BAD
-from .base import Page
-from .login import field
+from screen_base import Page
+from screen_login import field
 
 class AdminScreen(Page):
     def build_ui(s):

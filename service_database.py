@@ -23,9 +23,22 @@ class DB:
         CREATE TABLE IF NOT EXISTS questions(id INTEGER PRIMARY KEY,data TEXT);
         CREATE TABLE IF NOT EXISTS mistakes(login TEXT,qtext TEXT,data TEXT,PRIMARY KEY(login,qtext));
         CREATE TABLE IF NOT EXISTS meta(k TEXT PRIMARY KEY,v TEXT);""")
+        # Keep schema upgrades safe for existing installs.
 
     def q(s, sql, a=()):
         cur = s.c.execute(sql, a); s.c.commit(); return cur.fetchall()
+
+    def set_session(s, login):
+        if login: s.q("insert or replace into meta(k,v) values('remembered_login',?)", (login,))
+        else: s.q("delete from meta where k='remembered_login'")
+
+    def remembered_login(s):
+        r = s.q("select v from meta where k='remembered_login'")
+        return r[0]['v'] if r else None
+
+    def user_by_login(s, login):
+        r = s.q('select * from users where login=?', (login,))
+        return dict(r[0]) if r and not r[0]['blocked'] else None
 
     def add_result(s, login, groups):
         """groups: {subject: (correct, total)}"""

@@ -4,7 +4,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.textinput import TextInput
 from widget_cards import Card, badge, chip, lbl, btn, row, NEON, BAD, GOLD, DIM, PRI
 import service_contact as contact
-from .base import Page
+from screen_base import Page
 
 def field(hint, pw=False):
     return TextInput(hint_text=hint, password=pw, multiline=False, size_hint_y=None, height=dp(48), write_tab=False,

@@ -1,5 +1,5 @@
 import secrets
-from .database import hash_pw
+from service_database import hash_pw
 
 class Auth:
     def __init__(s, db): s.db = db

@@ -3,7 +3,7 @@ from kivy.metrics import dp
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
 from widget_cards import btn, info, lbl, NEON
-from .base import Page
+from screen_base import Page
 
 def category(n):
     """Index into translations 'cat'."""

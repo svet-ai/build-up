@@ -2,7 +2,7 @@ import datetime, time
 from kivy.metrics import dp
 from kivy.uix.boxlayout import BoxLayout
 from widget_cards import Card, badge, heat, lbl, btn, row, NEON, DIM
-from .base import Page
+from screen_base import Page
 
 class ProfileScreen(Page):
     def build_ui(s):

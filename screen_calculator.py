@@ -2,7 +2,7 @@ from kivy.metrics import dp
 from kivy.uix.gridlayout import GridLayout
 from widget_cards import Card, lbl, btn, NEON
 from service_calculator import calc
-from .base import Page
+from screen_base import Page
 
 KEYS = ['C', '(', ')', 'DEL', '7', '8', '9', '÷', '4', '5', '6', '×', '1', '2', '3', '-', '0', '.', '^', '+', 'sqrt(', 'sin(', 'cos(', 'tan(', 'ln(', 'log(', 'pi', '=']
 

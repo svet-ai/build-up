@@ -1,7 +1,7 @@
 from kivy.metrics import dp
 from kivy.uix.boxlayout import BoxLayout
 from widget_cards import Card, Ring, badge, accent, lbl, btn, bar, row, NEON, DIM, GOLD
-from .base import Page
+from screen_base import Page
 
 class HomeScreen(Page):
     def build_ui(s):

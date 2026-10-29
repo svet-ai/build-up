@@ -1,5 +1,5 @@
 from widget_cards import lbl, btn, NEON
-from .base import Page
+from screen_base import Page
 
 class GradeScreen(Page):
     def build_ui(s):

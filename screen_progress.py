@@ -1,6 +1,6 @@
 import datetime
 from widget_cards import Card, lbl, bar, row, NEON, DIM
-from .base import Page
+from screen_base import Page
 
 class ProgressScreen(Page):
     def build_ui(s):

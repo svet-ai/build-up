@@ -68,6 +68,11 @@ class BilimUp(App):
         if pw: open(s.pwfile, 'w').write(pw)
         elif os.path.exists(s.pwfile): os.remove(s.pwfile)
         s.sm.get_screen('login').refresh()
+        # Restore the previous session after app restarts; explicit logout clears it.
+        remembered = s.db.remembered_login()
+        restored = s.db.user_by_login(remembered) if remembered else None
+        if restored:
+            Clock.schedule_once(lambda dt, u=restored: s.login(u), .15)
         Clock.schedule_once(lambda dt: s.check_updates(), 3)
         return root
 
@@ -82,7 +87,7 @@ class BilimUp(App):
         if user['role'] == 'admin':
             s.auth.mark_admin_seen()
             if os.path.exists(s.pwfile): os.remove(s.pwfile)
-        s.user = user; s.lang = user['lang'] if user['lang'] in LANGS else s.lang; s.nav.retext(); s.go('home' if user['grade'] else 'grade')
+        s.user = user; s.db.set_session(user['login']); s.lang = user['lang'] if user['lang'] in LANGS else s.lang; s.nav.retext(); s.go('home' if user['grade'] else 'grade')
     def check_updates(s, manual=False):
         url = s.cfg.get('update_url', '')
         if not url:
@@ -102,7 +107,7 @@ class BilimUp(App):
         if r['apk']: info(s.t('check_update'), f"{s.t('update_avail')} {r['version']}", s.t('download'), lambda: webbrowser.open(r['apk']))
         elif r['added']: info(s.t('check_update'), f"{s.t('new_q')}: {r['added']}", s.t('ok'))
         elif manual: info(s.t('check_update'), s.t('update_none'), s.t('ok'))
-    def logout(s): s.user = None; s.go('login')
+    def logout(s): s.db.set_session(None); s.user = None; s.go('login')
     def set_lang(s, l):
         s.lang = l; s.nav.retext()
         if s.user: s.auth.update(s.user['login'], lang=l); s.user['lang'] = l

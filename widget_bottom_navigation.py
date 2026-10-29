@@ -3,7 +3,7 @@ from kivy.graphics import Color, Line, RoundedRectangle
 from kivy.metrics import dp
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-from .cards import CARD, PRI, DIM
+from widget_cards import CARD, PRI, DIM
 
 ITEMS = ('home', 'subjects', 'progress', 'profile')
 

@@ -1,6 +1,6 @@
 import json, os
 from widget_cards import Card, lbl, btn, NEON
-from .base import Page
+from screen_base import Page
 
 class FormulasScreen(Page):
     def build_ui(s):

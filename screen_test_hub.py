@@ -1,5 +1,5 @@
 from widget_cards import Card, lbl, btn, NEON
-from .base import Page
+from screen_base import Page
 
 class TestHub(Page):
     def build_ui(s):
